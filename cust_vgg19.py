@@ -73,6 +73,12 @@ class Vgg19:
         self.conv5_4 = self.conv_layer(self.conv5_3, "conv5_4")
         self.pool5 = self.max_pool(self.conv5_4, 'pool5')
 
+				self.conv1_1_G = self.get_G_matrix(self.conv1_1)
+        self.conv2_1_G = self.get_G_matrix(self.conv2_1)
+        self.conv3_1_G = self.get_G_matrix(self.conv3_1)
+        self.conv4_1_G = self.get_G_matrix(self.conv4_1)
+        self.conv5_1_G = self.get_G_matrix(self.conv5_1)
+
         self.fc6 = self.fc_layer(self.pool5, "fc6")
         assert self.fc6.get_shape().as_list()[1:] == [4096]
         self.relu6 = tf.nn.relu(self.fc6)
@@ -130,3 +136,10 @@ class Vgg19:
 
     def get_fc_weight(self, name):
         return tf.constant(self.data_dict[name][0], name="weights")
+
+    def get_G_matrix(self, layer):
+        tmp = tf.transpose(layer, perm=[0, 3, 1, 2])
+        tmp = tf.matmul(tmp, tmp)
+        tmp = tf.transpose(tmp, [0, 2, 3, 1])
+        return tmp
+

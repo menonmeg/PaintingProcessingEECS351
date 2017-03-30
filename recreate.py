@@ -58,7 +58,7 @@ cost = tf.reduce_sum(tf.square(tiger_conv1_1 - cust_vgg.conv1_1))
 train_step = tf.train.GradientDescentOptimizer(0.005).minimize(cost)
 
 tf.global_variables_initializer().run()
-print("running carl's sketchy code")
+
 N = 10
 costs = np.zeros(N)
 sums = np.zeros(N)
