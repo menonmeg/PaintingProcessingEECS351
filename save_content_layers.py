@@ -46,7 +46,7 @@ def main(argv):
 	with tf.name_scope("content_vgg"):
 		vgg.build(images)
 
-	layer_count = 5;
+	layer_count = 11;
 	layer_names = ["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1","conv1_1_G", "conv2_1_G", "conv3_1_G", "conv4_1_G","conv5_1_G","conv4_2"]
 
 	layers = setup_sess.run({layer_names[0]: vgg.conv1_1, \
