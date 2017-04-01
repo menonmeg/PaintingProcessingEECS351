@@ -47,14 +47,20 @@ def main(argv):
 		vgg.build(images)
 
 	layer_count = 5;
-	layer_names = ["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
+	layer_names = ["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1","conv1_1_G", "conv2_1_G", "conv3_1_G", "conv4_1_G","conv5_1_G","conv4_2"]
 
 	layers = setup_sess.run({layer_names[0]: vgg.conv1_1, \
-													 layer_names[1]: vgg.conv2_1, \
-													 layer_names[2]: vgg.conv3_1, \
-													 layer_names[3]: vgg.conv4_1, \
-													 layer_names[4]: vgg.conv5_1}, \
-													 feed_dict = feed_dict)
+				layer_names[1]: vgg.conv2_1, \
+				layer_names[2]: vgg.conv3_1, \
+				layer_names[3]: vgg.conv4_1, \
+				layer_names[4]: vgg.conv5_1, \
+				layer_names[5]: vgg.conv1_1_G, \
+				layer_names[6]: vgg.conv2_1_G, \
+				layer_names[7]: vgg.conv3_1_G, \
+				layer_names[8]: vgg.conv4_1_G, \
+				layer_names[9]: vgg.conv5_1_G, \
+				layer_names[10]: vgg.conv4_2}, \
+				feed_dict = feed_dict)
 	setup_sess.close()
 
 	for i in range(0,layer_count):
