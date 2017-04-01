@@ -1,4 +1,5 @@
 import os
+import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 import numpy as np
@@ -7,7 +8,9 @@ import tensorflow as tf
 import utils
 #import vgg19
 import cust_vgg19
+import getopt
 from PIL import Image
+
 
 def main(argv):
 	style_dir = ''
@@ -37,14 +40,16 @@ def main(argv):
 	# load content layers
 	content_path = content_dir + "/"
 	# right now, I'm only loading conv4_2
+	'''
 	content = {\ #content_layers[0]: np.load(content_path + content_layers[0] + ".npy"), \
 						 #content_layers[1]: np.load(content_path + content_layers[1] + ".npy"), \
 						 #content_layers[2]: np.load(content_path + content_layers[2] + ".npy"), \
 						 #content_layers[3]: np.load(content_path + content_layers[3] + ".npy"), \
 						 #content_layers[4]: np.load(content_path + content_layers[4] + ".npy"), \
 						 content_layers[5]: np.load(content_path + content_layers[5] + ".npy")}
+	'''
+	content = {content_layers[5]: np.load(content_path + content_layers[5] + ".npy")}
 
-	sys.exit()
 	# load style layers
 	style_path = style_dir + "/"
 	style = {style_layers[0]: np.load(style_path + style_layers[0] + ".npy"), \
@@ -60,6 +65,7 @@ def main(argv):
 
 
 	# Assemble network
+	sess = tf.InteractiveSession()
 	cust_vgg = cust_vgg19.Vgg19()
 	cust_vgg.build()
 
@@ -67,26 +73,52 @@ def main(argv):
 
 	layers_to_include = 3
 
-	cost = beta * (tf.reduce_sum(tf.square(cust_vgg.conv1_1_g - style["conv1_1_G"])) \
+	styles = ["conv1_1_G", "conv2_1_G", "onv3_1_G"];
+
+
+	conv1_1_G_shape = style["conv1_1_G"].shape
+	conv1_1_G_scaling = 1.0 / (4 * conv1_1_G_shape[1]**4 * conv1_1_G_shape[3]**2)
+
+	conv2_1_G_shape = style["conv2_1_G"].shape
+	conv2_1_G_scaling = 1.0 / (4 * conv2_1_G_shape[1]**4 * conv2_1_G_shape[3]**2)
+
+			
+	cost = tf.add(cost, conv1_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"]))) 
+	cost = tf.add(cost, conv2_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv2_1_G - style["conv2_1_G"]))) 
+	'''
+	for label in styles:
+		cost = tf.add(cost, tf.reduce_sum(
+	cost = beta * (tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])) \
 								+ tf.reduce_sum(tf.square(cust_vgg.conv2_1_G - style["conv2_1_G"])) |
 								+ tf.reduce_sum(tf.square(cust_vgg.conv3_1_G - style["conv3_1_G"])))
+	'''
 
-	train_step = tf.train.GradientDescentOptimizer(0.005).minimize(cost)
+	train_step = tf.train.GradientDescentOptimizer(0.050).minimize(cost)
+
 
 	tf.global_variables_initializer().run()
 
-	N = 10
+	N = 100
+	save_step = 10;
 	costs = np.zeros(N)
 
 	for i in range(N):
 		sess.run(train_step)
 		costs[i] = cost.eval()
-		print "Percent Complete: ", 1 * i / N, "\nCost: ", costs[i]
+		print "Percent Complete: ", 1.0 * i / N, "\nCost: ", costs[i]
+		if np.mod(i,save_step) == 0:
+			inp = cust_vgg.inp.eval()
+			save_image(inp, i)
 		
 
 	inp = cust_vgg.inp.eval()
 	sess.close()
 
+	save_image(inp, N)
+
+
+	
+def save_image(inp,name):
 	inp = inp.reshape(224,224,3)
 	inp = inp[:,:,[2,1,0]]
 	for i in range(0,3):
@@ -94,10 +126,7 @@ def main(argv):
 		inp[:,:,i] = 255 * np.true_divide(inp[:,:,i],max(inp[:,:,i].reshape((224**2,1)))) 
 
 	inp = Image.fromarray(inp.astype(np.uint8))
-	inp.save('test.jpeg')
-
-
-	
+	inp.save(str(name) + '.jpeg')
 
 
 	
