@@ -59,7 +59,7 @@ def main(argv):
 					 style_layers[4]: np.load(style_path + style_layers[4] + ".npy")}
 
 	
-	alpha_beta_ratio = 1 * 10**-3;
+	alpha_beta_ratio = 1 * 10**-4
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
@@ -69,7 +69,7 @@ def main(argv):
 	cust_vgg = cust_vgg19.Vgg19()
 	cust_vgg.build()
 
-	cost = alpha * tf.reduce_sum(tf.square(cust_vgg.conv4_2 - content["conv4_2"]))
+	content_cost = alpha * tf.reduce_sum(tf.square(cust_vgg.conv4_2 - content["conv4_2"]))
 
 	layers_to_include = 3
 
@@ -81,10 +81,25 @@ def main(argv):
 
 	conv2_1_G_shape = style["conv2_1_G"].shape
 	conv2_1_G_scaling = 1.0 / (4 * conv2_1_G_shape[1]**4 * conv2_1_G_shape[3]**2)
+	
+	conv3_1_G_shape = style["conv3_1_G"].shape
+	conv3_1_G_scaling = 1.0 / (4 * conv3_1_G_shape[1]**4 * conv3_1_G_shape[3]**2)
 
+	conv4_1_G_shape = style["conv4_1_G"].shape
+	conv4_1_G_scaling = 1.0 / (4 * conv4_1_G_shape[1]**4 * conv4_1_G_shape[3]**2)
 			
-	cost = tf.add(cost, conv1_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"]))) 
-	cost = tf.add(cost, conv2_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv2_1_G - style["conv2_1_G"]))) 
+	conv5_1_G_shape = style["conv5_1_G"].shape
+	conv5_1_G_scaling = 1.0 / (4 * conv5_1_G_shape[1]**4 * conv5_1_G_shape[3]**2)
+
+	style_layer_count = 5;
+	style_cost = conv1_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])) 
+	#style_cost = tf.zeros((1))
+	#style_cost = tf.add(style_cost, conv2_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv2_1_G - style["conv2_1_G"]))) 
+	#style_cost = tf.add(style_cost, conv3_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv3_1_G - style["conv3_1_G"]))) 
+	#style_cost = tf.add(style_cost, conv4_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv4_1_G - style["conv4_1_G"]))) 
+	#style_cost = tf.add(style_cost, conv5_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv5_1_G - style["conv5_1_G"]))) 
+
+	cost = content_cost + style_cost / style_layer_count
 	'''
 	for label in styles:
 		cost = tf.add(cost, tf.reduce_sum(
@@ -93,7 +108,7 @@ def main(argv):
 								+ tf.reduce_sum(tf.square(cust_vgg.conv3_1_G - style["conv3_1_G"])))
 	'''
 
-	train_step = tf.train.GradientDescentOptimizer(0.050).minimize(cost)
+	train_step = tf.train.GradientDescentOptimizer(0.010).minimize(cost)
 
 
 	tf.global_variables_initializer().run()
@@ -106,6 +121,8 @@ def main(argv):
 		sess.run(train_step)
 		costs[i] = cost.eval()
 		print "Percent Complete: ", 1.0 * i / N, "\nCost: ", costs[i]
+		#print "Style cost: ", style_cost.eval() / style_layer_count
+		#print "Content cost: ", content_cost.eval()
 		if np.mod(i,save_step) == 0:
 			inp = cust_vgg.inp.eval()
 			save_image(inp, i)
@@ -121,9 +138,13 @@ def main(argv):
 def save_image(inp,name):
 	inp = inp.reshape(224,224,3)
 	inp = inp[:,:,[2,1,0]]
+	inp[:,:,:] = inp[:,:,:] - min(inp[:,:,:].reshape((3*224**2,1)))
+	inp[:,:,:] = 255 * np.true_divide(inp[:,:,:],max(inp[:,:,:].reshape((3*224**2,1))))
+	'''
 	for i in range(0,3):
 		inp[:,:,i] = inp[:,:,i] - min(inp[:,:,i].reshape((224**2,1)))
 		inp[:,:,i] = 255 * np.true_divide(inp[:,:,i],max(inp[:,:,i].reshape((224**2,1)))) 
+	'''
 
 	inp = Image.fromarray(inp.astype(np.uint8))
 	inp.save(str(name) + '.jpeg')
