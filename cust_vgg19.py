@@ -73,7 +73,7 @@ class Vgg19:
         self.conv5_4 = self.conv_layer(self.conv5_3, "conv5_4")
         self.pool5 = self.max_pool(self.conv5_4, 'pool5')
 
-				self.conv1_1_G = self.get_G_matrix(self.conv1_1)
+        self.conv1_1_G = self.get_G_matrix(self.conv1_1)
         self.conv2_1_G = self.get_G_matrix(self.conv2_1)
         self.conv3_1_G = self.get_G_matrix(self.conv3_1)
         self.conv4_1_G = self.get_G_matrix(self.conv4_1)
