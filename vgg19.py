@@ -135,7 +135,7 @@ class Vgg19:
 		
     def get_G_matrix(self, layer):
         tmp = tf.transpose(layer, perm=[0, 3, 1, 2])
-        tmp = tf.matmul(tmp, tmp)
+        tmp = tf.matmul(tmp, tf.transpose(tmp,perm=[0,1,3,2]))
         tmp = tf.transpose(tmp, [0, 2, 3, 1])
         return tmp
 
