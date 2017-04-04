@@ -45,7 +45,8 @@ class Vgg19:
         assert bgr.get_shape().as_list()[1:] == [224, 224, 3]
         '''
 
-        self.inp = tf.Variable(tf.ones([1,224,224,3]))
+        #self.inp = tf.Variable(tf.ones([1,224,224,3]))
+        self.inp = tf.Variable(tf.random_normal(shape=(1,224,224,3), mean=0.0, stddev=1.0, dtype=tf.float32))
 
         self.conv1_1 = self.conv_layer(self.inp, "conv1_1")
         self.conv1_2 = self.conv_layer(self.conv1_1, "conv1_2")
@@ -73,6 +74,10 @@ class Vgg19:
         self.conv5_4 = self.conv_layer(self.conv5_3, "conv5_4")
         self.pool5 = self.max_pool(self.conv5_4, 'pool5')
 
+        #self.tmp = tf.transpose(self.conv1_1, perm=[0,3,1,2])
+        #self.conv1_1_G = tf.matmul(self.tmp, tf.matrix_transpose(self.tmp))
+        #self.conv1_1_G = tf.transpose(self.conv1_1_G, perm=[0,2,3,1])
+        #self.conv1_1_G = tf.matmul(self.conv1_1, self.tmp)
         self.conv1_1_G = self.get_G_matrix(self.conv1_1)
         self.conv2_1_G = self.get_G_matrix(self.conv2_1)
         self.conv3_1_G = self.get_G_matrix(self.conv3_1)
@@ -141,5 +146,6 @@ class Vgg19:
         tmp = tf.transpose(layer, perm=[0, 3, 1, 2])
         tmp = tf.matmul(tmp, tf.transpose(tmp, perm=[0,1,3,2]))
         tmp = tf.transpose(tmp, [0, 2, 3, 1])
+        #tmp = tf.matmul(layer, tf.transpose(layer, perm=[0,1,3,2]))
         return tmp
 

@@ -70,6 +70,7 @@ class Vgg19:
         self.pool5 = self.max_pool(self.conv5_4, 'pool5')
 
         self.conv1_1_G = self.get_G_matrix(self.conv1_1)
+        #self.conv1_1_G = tf.matmul(self.conv1_1, tf.transpose(self.conv1_1,perm=[0,1,3,2]))
         self.conv2_1_G = self.get_G_matrix(self.conv2_1)
         self.conv3_1_G = self.get_G_matrix(self.conv3_1)
         self.conv4_1_G = self.get_G_matrix(self.conv4_1)
@@ -137,5 +138,6 @@ class Vgg19:
         tmp = tf.transpose(layer, perm=[0, 3, 1, 2])
         tmp = tf.matmul(tmp, tf.transpose(tmp,perm=[0,1,3,2]))
         tmp = tf.transpose(tmp, [0, 2, 3, 1])
+        #tmp = tf.matmul(layer, tf.transpose(layer, perm=[0,1,3,2]))
         return tmp
 

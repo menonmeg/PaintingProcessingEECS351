@@ -64,7 +64,6 @@ def main(argv):
 	setup_sess.close()
 
 	for i in range(0,layer_count):
-		print i
 		f_name = output_dir + "/" + layer_names[i] + ".npy"
 		np.save(f_name, layers[layer_names[i]])
 
