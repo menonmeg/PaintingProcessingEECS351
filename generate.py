@@ -60,7 +60,7 @@ def main(argv):
 					 style_layers[4]: np.load(style_path + style_layers[4] + ".npy")}
 
 	
-	alpha_beta_ratio = 1 * 10**7 
+	alpha_beta_ratio = 1 * 10**1
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
@@ -72,43 +72,39 @@ def main(argv):
 
 	conv4_2_shape = content["conv4_2"].shape
 	conv4_2_scaling = 1.0 / (4  * conv4_2_shape[1]**4 * conv4_2_shape[3]**2)
-	content_cost = alpha * conv4_2_scaling * tf.reduce_sum(tf.square(cust_vgg.conv4_2 - content["conv4_2"]))
+	content_cost = alpha * tf.reduce_sum(tf.square(cust_vgg.conv4_2 - content["conv4_2"]))
 
 	layers_to_include = 3
 
 
 	conv1_1_G_shape = style["conv1_1_G"].shape
-	conv1_1_G_scaling = tf.constant(1.0 / (4 * conv1_1_G_shape[1]**4 * conv1_1_G_shape[3]**2))
+	conv1_1_G_scaling = tf.constant(1.0 / (conv1_1_G_shape[0]**2 * conv1_1_G_shape[1]**2))
 
 	conv2_1_G_shape = style["conv2_1_G"].shape
-	conv2_1_G_scaling = 1.0 / (4 * conv2_1_G_shape[1]**4 * conv2_1_G_shape[3]**2)
-	
+	conv2_1_G_scaling = tf.constant(1.0 / (conv2_1_G_shape[0]**2 * conv2_1_G_shape[1]**2))
+
 	conv3_1_G_shape = style["conv3_1_G"].shape
-	conv3_1_G_scaling = 1.0 / (4 * conv3_1_G_shape[1]**4 * conv3_1_G_shape[3]**2)
+	conv3_1_G_scaling = tf.constant(1.0 / (conv3_1_G_shape[0]**2 * conv3_1_G_shape[1]**2))
 
 	conv4_1_G_shape = style["conv4_1_G"].shape
-	conv4_1_G_scaling = 1.0 / (4 * conv4_1_G_shape[1]**4 * conv4_1_G_shape[3]**2)
-			
+	conv4_1_G_scaling = tf.constant(1.0 / (conv4_1_G_shape[0]**2 * conv4_1_G_shape[1]**2))
+
 	conv5_1_G_shape = style["conv5_1_G"].shape
-	conv5_1_G_scaling = 1.0 / (4 * conv5_1_G_shape[1]**4 * conv5_1_G_shape[3]**2)
+	conv5_1_G_scaling = tf.constant(1.0 / (conv5_1_G_shape[0]**2 * conv5_1_G_shape[1]**2))
 
-	style_layer_count = 1;
-	one = tf.ones((1))
-	#style_cost = tf.multiply(conv1_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])))
-	style_cost = tf.multiply(conv1_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])))
-	#style_cost = conv1_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - content["conv1_1"]))
-	#style_cost = tf.scalar_mul(tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])), conv1_1_G_scaling)
-	#style_cost = tf.multiply(tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])), conv1_1_G_scaling) 
-	#style_cost = tf.zeros((1))
-	#style_cost = tf.add(style_cost, conv2_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv2_1_G - style["conv2_1_G"]))) 
-	#style_cost = tf.add(style_cost, conv3_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv3_1_G - style["conv3_1_G"]))) 
-	#style_cost = tf.add(style_cost, conv4_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv4_1_G - style["conv4_1_G"]))) 
-	#style_cost = tf.add(style_cost, conv5_1_G_scaling * tf.reduce_sum(tf.square(cust_vgg.conv5_1_G - style["conv5_1_G"]))) 
+	style_cost_1 = tf.multiply(conv1_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])))
+	style_cost_2 = tf.multiply(conv2_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv2_1_G - style["conv2_1_G"])))
+	style_cost_3 = tf.multiply(conv3_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv3_1_G - style["conv3_1_G"])))
+	style_cost_4 = tf.multiply(conv4_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv4_1_G - style["conv4_1_G"])))
+	style_cost_5 = tf.multiply(conv5_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv5_1_G - style["conv5_1_G"])))
 
-	#cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
-	cost = style_cost
+	#style_cost = tf.add(style_cost_1, tf.add(style_cost_2,style_cost_3))
+	style_layer_count = 2;
+	style_cost = tf.add(style_cost_1, style_cost_2)
 
-	train_step = tf.train.GradientDescentOptimizer(0.0010*10**5).minimize(cost)
+	cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
+
+	train_step = tf.train.GradientDescentOptimizer(0.0010*10**-3).minimize(cost)
 
 
 	tf.global_variables_initializer().run()
@@ -124,6 +120,8 @@ def main(argv):
 		tmp = cust_vgg.inp.eval()
 		print "mean: ", np.mean(tmp.reshape((224*224*3,1)))
 		print "std: ", np.std(tmp.reshape((224*224*3,1)))
+		print "style: ", style_cost.eval()
+		print "content: ", content_cost.eval()
 		#print "Style cost: ", style_cost.eval() / style_layer_count
 		#print "Content cost: ", content_cost.eval()
 		if np.mod(i,save_step) == 0:

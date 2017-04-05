@@ -135,9 +135,14 @@ class Vgg19:
         return tf.constant(self.data_dict[name][0], name="weights")
 		
     def get_G_matrix(self, layer):
-        tmp = tf.transpose(layer, perm=[0, 3, 1, 2])
-        tmp = tf.matmul(tmp, tf.transpose(tmp,perm=[0,1,3,2]))
-        tmp = tf.transpose(tmp, [0, 2, 3, 1])
+        #tmp = tf.transpose(layer, perm=[0, 3, 1, 2])
+        #tmp = tf.matmul(tmp, tf.transpose(tmp,perm=[0,1,3,2]))
+        #tmp = tf.transpose(tmp, [0, 2, 3, 1])
         #tmp = tf.matmul(layer, tf.transpose(layer, perm=[0,1,3,2]))
+        size = layer.shape
+        M = tf.to_int32(size[1] * size[2]);
+        N = tf.to_int32(size[3])
+        tmp = tf.reshape(layer, [M,N])
+        tmp = tf.matmul(tf.transpose(tmp), tmp);
         return tmp
 
