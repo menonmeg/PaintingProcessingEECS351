@@ -64,11 +64,11 @@ def main(argv):
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
-    # image file location
-    image_name = "apple_cropped.jpg"
-    content_image_loc = "content_pics/apple_cropped.jpg" + image_name
-    img1 = utils.load_image(content_image_loc)
-    img1_tensor = tf.constant(img1)
+	# image file location
+	image_name = "apple_cropped.jpg"
+	content_image_loc = "content_pics/" + image_name
+	img1 = utils.load_image(content_image_loc)
+	img1_tensor = tf.reshape(tf.constant(img1),(1,224,224,3))
     
 
 	# Assemble network
