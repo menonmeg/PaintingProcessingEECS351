@@ -64,11 +64,17 @@ def main(argv):
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
+    # image file location
+    image_name = "apple_cropped.jpg"
+    content_image_loc = "content_pics/apple_cropped.jpg" + image_name
+    img1 = utils.load_image(content_image_loc)
+    img1_tensor = tf.constant(img1)
+    
 
 	# Assemble network
 	sess = tf.InteractiveSession()
 	cust_vgg = cust_vgg19.Vgg19()
-	cust_vgg.build()
+	cust_vgg.build(img1_tensor)
 
 	conv4_2_shape = content["conv4_2"].shape
 	conv4_2_scaling = 1.0 / (4  * conv4_2_shape[1]**4 * conv4_2_shape[3]**2)

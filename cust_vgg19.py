@@ -20,7 +20,7 @@ class Vgg19:
         self.data_dict = np.load(vgg19_npy_path, encoding='latin1').item()
         print("npy file loaded")
 
-    def build(self):
+    def build(self, rgb):
         """
         load variable from npy to build the VGG
 
@@ -31,8 +31,8 @@ class Vgg19:
         print("build model started")
         #rgb_scaled = rgb * 255.0
 
-        '''
-        # Convert RGB to BGR
+
+        #Convert RGB to BGR
         red, green, blue = tf.split(axis=3, num_or_size_splits=3, value=rgb_scaled)
         assert red.get_shape().as_list()[1:] == [224, 224, 1]
         assert green.get_shape().as_list()[1:] == [224, 224, 1]
@@ -43,9 +43,10 @@ class Vgg19:
             red - VGG_MEAN[2],
         ])
         assert bgr.get_shape().as_list()[1:] == [224, 224, 3]
-        '''
+        
 
-        #self.inp = tf.Variable(tf.ones([1,224,224,3]))
+        #self.inp = tf.Variable((tf.ones([1,224,224,3]))
+        self.inp = tf.Variable(tf.identity(bgr))
         self.inp = tf.Variable(tf.random_normal(shape=(1,224,224,3), mean=0.0, stddev=1.0, dtype=tf.float32))
 
         self.conv1_1 = self.conv_layer(self.inp, "conv1_1")
