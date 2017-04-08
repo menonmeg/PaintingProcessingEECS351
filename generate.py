@@ -60,7 +60,7 @@ def main(argv):
 					 style_layers[4]: np.load(style_path + style_layers[4] + ".npy")}
 
 	
-	alpha_beta_ratio = 1 * 10**1
+	alpha_beta_ratio = 1 * 10**-3
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
@@ -68,7 +68,10 @@ def main(argv):
 	image_name = "apple_cropped.jpg"
 	content_image_loc = "content_pics/" + image_name
 	img1 = utils.load_image(content_image_loc)
-	img1_tensor = tf.reshape(tf.constant(img1),(1,224,224,3))
+
+	noise = np.random.normal(0,1,(224,224,3))
+	img1_noisy = img1 + noise
+	img1_tensor = tf.reshape(tf.constant(img1_noisy,dtype=tf.float32),(1,224,224,3))
     
 
 	# Assemble network
@@ -107,16 +110,18 @@ def main(argv):
 	#style_cost = tf.add(style_cost_1, tf.add(style_cost_2,style_cost_3))
 	style_layer_count = 2;
 	style_cost = tf.add(style_cost_1, style_cost_2)
+	#style_cost = style_cost_1
 
 	cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
+	#cost = style_cost
 
 	train_step = tf.train.GradientDescentOptimizer(0.0010*10**-3).minimize(cost)
 
 
 	tf.global_variables_initializer().run()
 
-	N = 100
-	save_step = 10;
+	N = 500
+	save_step = 50;
 	costs = np.zeros(N)
 
 	for i in range(N):
