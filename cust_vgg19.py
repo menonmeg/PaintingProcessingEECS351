@@ -47,7 +47,7 @@ class Vgg19:
 
         #self.inp = tf.Variable((tf.ones([1,224,224,3]))
         self.inp = tf.Variable(tf.identity(bgr))
-        self.inp = tf.Variable(tf.random_normal(shape=(1,224,224,3), mean=0.0, stddev=1.0, dtype=tf.float32))
+        #self.inp = tf.Variable(tf.random_normal(shape=(1,224,224,3), mean=0.0, stddev=1.0, dtype=tf.float32))
 
         self.conv1_1 = self.conv_layer(self.inp, "conv1_1")
         self.conv1_2 = self.conv_layer(self.conv1_1, "conv1_2")

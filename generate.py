@@ -10,6 +10,8 @@ import utils
 import cust_vgg19
 import getopt
 from PIL import Image
+import tqdm
+import time
 
 
 def main(argv):
@@ -60,16 +62,16 @@ def main(argv):
 					 style_layers[4]: np.load(style_path + style_layers[4] + ".npy")}
 
 	
-	alpha_beta_ratio = 1 * 10**-3
+	alpha_beta_ratio = 1 * 10**0
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
 	# image file location
-	image_name = "apple_cropped.jpg"
+	image_name = "law_library_cropped.jpg"
 	content_image_loc = "content_pics/" + image_name
 	img1 = utils.load_image(content_image_loc)
 
-	noise = np.random.normal(0,1,(224,224,3))
+	noise = np.random.normal(0,0.2,(224,224,3))
 	img1_noisy = img1 + noise
 	img1_tensor = tf.reshape(tf.constant(img1_noisy,dtype=tf.float32),(1,224,224,3))
     
@@ -82,9 +84,6 @@ def main(argv):
 	conv4_2_shape = content["conv4_2"].shape
 	conv4_2_scaling = 1.0 / (4  * conv4_2_shape[1]**4 * conv4_2_shape[3]**2)
 	content_cost = alpha * tf.reduce_sum(tf.square(cust_vgg.conv4_2 - content["conv4_2"]))
-
-	layers_to_include = 3
-
 
 	conv1_1_G_shape = style["conv1_1_G"].shape
 	conv1_1_G_scaling = tf.constant(1.0 / (conv1_1_G_shape[0]**2 * conv1_1_G_shape[1]**2))
@@ -120,24 +119,24 @@ def main(argv):
 
 	tf.global_variables_initializer().run()
 
-	N = 500
+	N = 1000
 	save_step = 50;
 	costs = np.zeros(N)
 
-	for i in range(N):
+	for i in tqdm.tqdm(range(N)):
 		sess.run(train_step)
 		costs[i] = cost.eval()
-		print "Percent Complete: ", 1.0 * i / N, "\nCost: ", costs[i]
-		tmp = cust_vgg.inp.eval()
-		print "mean: ", np.mean(tmp.reshape((224*224*3,1)))
-		print "std: ", np.std(tmp.reshape((224*224*3,1)))
-		print "style: ", style_cost.eval()
-		print "content: ", content_cost.eval()
+		#print "Percent Complete: ", 1.0 * i / N, "\nCost: ", costs[i]
+		#tmp = cust_vgg.inp.eval()
+		#print "mean: ", np.mean(tmp.reshape((224*224*3,1)))
+		#print "std: ", np.std(tmp.reshape((224*224*3,1)))
+		#print "style: ", style_cost.eval()
+		#print "content: ", content_cost.eval()
 		#print "Style cost: ", style_cost.eval() / style_layer_count
 		#print "Content cost: ", content_cost.eval()
 		if np.mod(i,save_step) == 0:
-			inp = cust_vgg.inp.eval()
-			save_image(inp, i)
+			print "{0} iteration\tcost: {1}".format(i,costs[i])
+			save_image(cust_vgg.inp.eval(), i)
 		
 
 	inp = cust_vgg.inp.eval()
