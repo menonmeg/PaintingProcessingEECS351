@@ -17,21 +17,24 @@ import time
 def main(argv):
 	style_dir = ''
 	content_dir = ''
+	initial_file = ''
 	
 	try:
-		opts, args = getopt.getopt(argv, "hs:c:")
+		opts, args = getopt.getopt(argv, "hs:c:i:")
 	except getopt.GetoptError:
-		print 'test.py -s <style_directory> -c <content_directory>'
 		sys.exit()
 
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'test.py -s <style_directory> -c <content_directory>'
+			print 'test.py -s <style_directory> -c <content_directory> -i <initial_image_path>'
 			sys.exit()
 		elif opt == '-c':
 			content_dir = arg
 		elif opt == '-s':
 			style_dir = arg
+		elif opt == '-i':
+			initial_file = arg
+
 
 	print 'Style directory: ', style_dir
 	print 'Content directory: ', content_dir
@@ -67,9 +70,7 @@ def main(argv):
 	alpha = alpha_beta_ratio;
 
 	# image file location
-	image_name = "law_library_cropped.jpg"
-	content_image_loc = "content_pics/" + image_name
-	img1 = utils.load_image(content_image_loc)
+	img1 = utils.load_image(initial_file)
 
 	noise = np.random.normal(0,0.2,(224,224,3))
 	img1_noisy = img1 + noise
