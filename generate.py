@@ -65,7 +65,7 @@ def main(argv):
 					 style_layers[4]: np.load(style_path + style_layers[4] + ".npy")}
 
 	
-	alpha_beta_ratio = 1 * 10**0
+	alpha_beta_ratio = 1 * 10**-2
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
@@ -112,38 +112,54 @@ def main(argv):
 	style_cost = tf.add(style_cost_1, style_cost_2)
 	#style_cost = style_cost_1
 
-	cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
-	#cost = style_cost
-
-	train_step = tf.train.GradientDescentOptimizer(0.0010*10**-3).minimize(cost)
-
+	#cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
+	cost = style_cost
 
 	tf.global_variables_initializer().run()
+	
+	optimizer = 'bfgs'
 
-	N = 1000
-	save_step = 50;
-	costs = np.zeros(N)
+	if optimizer == 'bfgs':
+		maxiter = 50
+		train_step_bfgs = tf.contrib.opt.ScipyOptimizerInterface(cost, method='L-BFGS-B', options={'maxiter':maxiter})
 
-	for i in tqdm.tqdm(range(N)):
-		sess.run(train_step)
-		costs[i] = cost.eval()
-		#print "Percent Complete: ", 1.0 * i / N, "\nCost: ", costs[i]
-		#tmp = cust_vgg.inp.eval()
-		#print "mean: ", np.mean(tmp.reshape((224*224*3,1)))
-		#print "std: ", np.std(tmp.reshape((224*224*3,1)))
-		#print "style: ", style_cost.eval()
-		#print "content: ", content_cost.eval()
-		#print "Style cost: ", style_cost.eval() / style_layer_count
-		#print "Content cost: ", content_cost.eval()
-		if np.mod(i,save_step) == 0:
-			print "{0} iteration\tcost: {1}".format(i,costs[i])
-			save_image(cust_vgg.inp.eval(), i)
-		
+		N = 1000
+		count = N / maxiter
+		costs = np.zeros(count)
 
-	inp = cust_vgg.inp.eval()
-	sess.close()
+		for i in tqdm.tqdm(range(count)):
+			train_step_bfgs.minimize(sess)
+			costs[i] = cost.eval()	
+			print "{0} iteration\tcost: {1}".format(i * maxiter,costs[i])
+			save_image(cust_vgg.inp.eval(), i * maxiter)
 
-	save_image(inp, N)
+	elif optimizer == 'gradient_descent':
+		train_step = tf.train.GradientDescentOptimizer(0.0040*10**-3).minimize(cost)
+
+		N = 1000
+		save_step = 50;
+		costs = np.zeros(N)
+
+		for i in tqdm.tqdm(range(N)):
+			sess.run(train_step)
+			costs[i] = cost.eval()
+			#print "Percent Complete: ", 1.0 * i / N, "\nCost: ", costs[i]
+			#tmp = cust_vgg.inp.eval()
+			#print "mean: ", np.mean(tmp.reshape((224*224*3,1)))
+			#print "std: ", np.std(tmp.reshape((224*224*3,1)))
+			#print "style: ", style_cost.eval()
+			#print "content: ", content_cost.eval()
+			#print "Style cost: ", style_cost.eval() / style_layer_count
+			#print "Content cost: ", content_cost.eval()
+			if np.mod(i,save_step) == 0:
+				print "{0} iteration\tcost: {1}".format(i,costs[i])
+				save_image(cust_vgg.inp.eval(), i)
+			
+
+		inp = cust_vgg.inp.eval()
+		sess.close()
+
+		save_image(inp, N)
 
 
 	
@@ -155,6 +171,7 @@ def save_image(inp,name):
 	for i in range(0,3):
 		inp[:,:,i] = inp[:,:,i] - min(inp[:,:,i].reshape((224**2,1)))
 		inp[:,:,i] = 255 * np.true_divide(inp[:,:,i],max(inp[:,:,i].reshape((224**2,1)))) 
+
 
 	inp = Image.fromarray(inp.astype(np.uint8))
 	inp.save(str(name) + '.jpeg')
