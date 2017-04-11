@@ -65,7 +65,7 @@ def main(argv):
 					 style_layers[4]: np.load(style_path + style_layers[4] + ".npy")}
 
 	
-	alpha_beta_ratio = 1 * 10**-2
+	alpha_beta_ratio = 1 * 10**0
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
@@ -108,12 +108,12 @@ def main(argv):
 	style_cost_5 = tf.multiply(conv5_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv5_1_G - style["conv5_1_G"])))
 
 	#style_cost = tf.add(style_cost_1, tf.add(style_cost_2,style_cost_3))
-	style_layer_count = 2;
+	style_layer_count = 5;
 	style_cost = tf.add(style_cost_1, style_cost_2)
 	#style_cost = style_cost_1
 
-	#cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
-	cost = style_cost
+	cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
+	#cost = style_cost
 
 	tf.global_variables_initializer().run()
 	
@@ -128,10 +128,14 @@ def main(argv):
 		costs = np.zeros(count)
 
 		for i in tqdm.tqdm(range(count)):
-			train_step_bfgs.minimize(sess)
 			costs[i] = cost.eval()	
 			print "{0} iteration\tcost: {1}".format(i * maxiter,costs[i])
 			save_image(cust_vgg.inp.eval(), i * maxiter)
+			train_step_bfgs.minimize(sess)
+		inp = cust_vgg.inp.eval()
+		sess.close()
+
+		save_image(inp, N)
 
 	elif optimizer == 'gradient_descent':
 		train_step = tf.train.GradientDescentOptimizer(0.0040*10**-3).minimize(cost)
@@ -164,15 +168,18 @@ def main(argv):
 
 	
 def save_image(inp,name):
+	vgg_mean = np.array([123.68, 116.779, 103.939]); #in rgb order
 	inp = inp.reshape(224,224,3)
 	inp = inp[:,:,[2,1,0]]
 	#inp[:,:,:] = inp[:,:,:] - min(inp[:,:,:].reshape((3*224**2,1)))
 	#inp[:,:,:] = 255 * np.true_divide(inp[:,:,:],max(inp[:,:,:].reshape((3*224**2,1))))
 	for i in range(0,3):
-		inp[:,:,i] = inp[:,:,i] - min(inp[:,:,i].reshape((224**2,1)))
-		inp[:,:,i] = 255 * np.true_divide(inp[:,:,i],max(inp[:,:,i].reshape((224**2,1)))) 
+		#inp[:,:,i] = inp[:,:,i] - min(inp[:,:,i].reshape((224**2,1)))
+		inp[:,:,i] = inp[:,:,i] + vgg_mean[i]
+		#inp[:,:,i] = 255 * np.true_divide(inp[:,:,i],max(inp[:,:,i].reshape((224**2,1)))) 
 
 
+	inp = np.clip(inp,0,255)
 	inp = Image.fromarray(inp.astype(np.uint8))
 	inp.save(str(name) + '.jpeg')
 
