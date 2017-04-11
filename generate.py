@@ -65,7 +65,7 @@ def main(argv):
 					 style_layers[4]: np.load(style_path + style_layers[4] + ".npy")}
 
 	
-	alpha_beta_ratio = 1 * 10**0
+	alpha_beta_ratio = 1 * 10**-1
 	beta = 1;
 	alpha = alpha_beta_ratio;
 
