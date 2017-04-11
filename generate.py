@@ -108,7 +108,7 @@ def main(argv):
 	style_cost_5 = tf.multiply(conv5_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv5_1_G - style["conv5_1_G"])))
 
 	#style_cost = tf.add(style_cost_1, tf.add(style_cost_2,style_cost_3))
-	style_layer_count = 5;
+	style_layer_count = 2;
 	style_cost = tf.add(style_cost_1, style_cost_2)
 	#style_cost = style_cost_1
 
