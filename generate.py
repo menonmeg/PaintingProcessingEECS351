@@ -82,24 +82,30 @@ def main(argv):
 	cust_vgg = cust_vgg19.Vgg19()
 	cust_vgg.build(img1_tensor)
 
-	conv4_2_shape = content["conv4_2"].shape
-	conv4_2_scaling = 1.0 / (4  * conv4_2_shape[1]**4 * conv4_2_shape[3]**2)
-	content_cost = alpha * tf.reduce_sum(tf.square(cust_vgg.conv4_2 - content["conv4_2"]))
+	#conv4_2_shape = content["conv4_2"].shape
+	#conv4_2_scaling = 1.0 / (4  * conv4_2_shape[1]**4 * conv4_2_shape[3]**2)
+	content_cost = alpha * 1.0 / 2.0 * tf.reduce_sum(tf.square(cust_vgg.conv4_2 - content["conv4_2"]))
 
-	conv1_1_G_shape = style["conv1_1_G"].shape
-	conv1_1_G_scaling = tf.constant(1.0 / (conv1_1_G_shape[0]**2 * conv1_1_G_shape[1]**2))
+	#conv1_1_G_shape = style["conv1_1_G"].shape
+	conv1_1_shape = cust_vgg.conv1_1.get_shape().as_list()
+	#conv1_1_G_scaling = tf.constant(1.0 / (conv1_1_G_shape[0]**2 * conv1_1_G_shape[1]**2))
+	conv1_1_G_scaling = tf.constant(1.0 / (conv1_1_shape[1]**4 * conv1_1_shape[3]**2))
 
-	conv2_1_G_shape = style["conv2_1_G"].shape
-	conv2_1_G_scaling = tf.constant(1.0 / (conv2_1_G_shape[0]**2 * conv2_1_G_shape[1]**2))
+	#conv2_1_G_shape = style["conv2_1_G"].shape
+	conv2_1_shape = cust_vgg.conv2_1.get_shape().as_list()
+	conv2_1_G_scaling = tf.constant(1.0 / (conv2_1_shape[1]**4 * conv2_1_shape[3]**2))
 
-	conv3_1_G_shape = style["conv3_1_G"].shape
-	conv3_1_G_scaling = tf.constant(1.0 / (conv3_1_G_shape[0]**2 * conv3_1_G_shape[1]**2))
+	#conv3_1_G_shape = style["conv3_1_G"].shape
+	conv3_1_shape = cust_vgg.conv3_1.get_shape().as_list()
+	conv3_1_G_scaling = tf.constant(1.0 / (conv3_1_shape[1]**4 * conv3_1_shape[3]**2))
 
-	conv4_1_G_shape = style["conv4_1_G"].shape
-	conv4_1_G_scaling = tf.constant(1.0 / (conv4_1_G_shape[0]**2 * conv4_1_G_shape[1]**2))
+	#conv4_1_G_shape = style["conv4_1_G"].shape
+	conv4_1_shape = cust_vgg.conv4_1.get_shape().as_list()
+	conv4_1_G_scaling = tf.constant(1.0 / (conv4_1_shape[1]**4 * conv4_1_shape[3]**2))
 
-	conv5_1_G_shape = style["conv5_1_G"].shape
-	conv5_1_G_scaling = tf.constant(1.0 / (conv5_1_G_shape[0]**2 * conv5_1_G_shape[1]**2))
+	#conv5_1_G_shape = style["conv5_1_G"].shape
+	conv5_1_shape = cust_vgg.conv5_1.get_shape().as_list()
+	conv5_1_G_scaling = tf.constant(1.0 / (conv5_1_shape[1]**4 * conv5_1_shape[3]**2))
 
 	style_cost_1 = tf.multiply(conv1_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv1_1_G - style["conv1_1_G"])))
 	style_cost_2 = tf.multiply(conv2_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv2_1_G - style["conv2_1_G"])))
@@ -108,12 +114,24 @@ def main(argv):
 	style_cost_5 = tf.multiply(conv5_1_G_scaling, tf.reduce_sum(tf.square(cust_vgg.conv5_1_G - style["conv5_1_G"])))
 
 	#style_cost = tf.add(style_cost_1, tf.add(style_cost_2,style_cost_3))
-	style_layer_count = 2;
-	style_cost = tf.add(style_cost_1, style_cost_2)
-	#style_cost = style_cost_1
+	style_layer_count = 4;
+	style_cost = tf.constant(0,dtype=tf.float32)
+	if style_layer_count == 1:
+		style_cost =  style_cost_1
+	elif style_layer_count == 2:
+		style_cost =  style_cost_1 + style_cost_2
+	elif style_layer_count == 3:
+		style_cost =  style_cost_1 + style_cost_2 + style_cost_3
+	elif style_layer_count == 4:
+		style_cost =  style_cost_1 + style_cost_2 + style_cost_3 + style_cost_4
+	elif style_layer_count == 5:
+		style_cost =  style_cost_1 + style_cost_2 + style_cost_3 + style_cost_4 + style_cost_5
+	else:
+		print 'error: invalid style_layer_count'
+		exit(1)
 
-	cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
-	#cost = style_cost
+	#cost = tf.add(content_cost, tf.multiply(style_cost, 1.0 / style_layer_count))
+	cost = style_cost
 
 	tf.global_variables_initializer().run()
 	
@@ -129,7 +147,14 @@ def main(argv):
 
 		for i in tqdm.tqdm(range(count)):
 			costs[i] = cost.eval()	
-			print "{0} iteration\tcost: {1}".format(i * maxiter,costs[i])
+			print "\n{0} iteration\tcost: {1}".format(i * maxiter,costs[i])
+			'''
+			print "layer 1 cost: {0}".format(style_cost_1.eval())
+			print "layer 2 cost: {0}".format(style_cost_2.eval())
+			print "layer 3 cost: {0}".format(style_cost_3.eval())
+			print "layer 4 cost: {0}".format(style_cost_4.eval())
+			print "layer 5 cost: {0}".format(style_cost_5.eval())
+			'''
 			save_image(cust_vgg.inp.eval(), i * maxiter)
 			train_step_bfgs.minimize(sess)
 		inp = cust_vgg.inp.eval()

@@ -44,7 +44,8 @@ class Vgg19:
         ])
         assert bgr.get_shape().as_list()[1:] == [224, 224, 3]
         
-        pool_type = "avg_pool"
+        ## change pool_type string to toggle between average and max pooling
+        pool_type = "max_pool"
         pool_func = 0
         if pool_type == "max_pool":
           pool_func = self.max_pool
