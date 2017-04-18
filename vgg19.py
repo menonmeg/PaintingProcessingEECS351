@@ -43,31 +43,42 @@ class Vgg19:
         ])
         assert bgr.get_shape().as_list()[1:] == [224, 224, 3]
 
+        ## change pool_type string to toggle between average and max pooling
+        pool_type = "avg_pool"
+        pool_func = 0		# initialize in proper scope
+        if pool_type == "max_pool":
+          pool_func = self.max_pool
+        elif pool_type == "avg_pool":
+          pool_func = self.avg_pool
+        else:
+          print 'error: invalid pool_type in cust_vgg19.py'
+          exit(1)
+
         self.conv1_1 = self.conv_layer(bgr, "conv1_1")
         self.conv1_2 = self.conv_layer(self.conv1_1, "conv1_2")
-        self.pool1 = self.max_pool(self.conv1_2, 'pool1')
+        self.pool1 = pool_func(self.conv1_2, 'pool1')
 
         self.conv2_1 = self.conv_layer(self.pool1, "conv2_1")
         self.conv2_2 = self.conv_layer(self.conv2_1, "conv2_2")
-        self.pool2 = self.max_pool(self.conv2_2, 'pool2')
+        self.pool2 = pool_func(self.conv2_2, 'pool2')
 
         self.conv3_1 = self.conv_layer(self.pool2, "conv3_1")
         self.conv3_2 = self.conv_layer(self.conv3_1, "conv3_2")
         self.conv3_3 = self.conv_layer(self.conv3_2, "conv3_3")
         self.conv3_4 = self.conv_layer(self.conv3_3, "conv3_4")
-        self.pool3 = self.max_pool(self.conv3_4, 'pool3')
+        self.pool3 = pool_func(self.conv3_4, 'pool3')
 
         self.conv4_1 = self.conv_layer(self.pool3, "conv4_1")
         self.conv4_2 = self.conv_layer(self.conv4_1, "conv4_2")
         self.conv4_3 = self.conv_layer(self.conv4_2, "conv4_3")
         self.conv4_4 = self.conv_layer(self.conv4_3, "conv4_4")
-        self.pool4 = self.max_pool(self.conv4_4, 'pool4')
+        self.pool4 = pool_func(self.conv4_4, 'pool4')
 
         self.conv5_1 = self.conv_layer(self.pool4, "conv5_1")
         self.conv5_2 = self.conv_layer(self.conv5_1, "conv5_2")
         self.conv5_3 = self.conv_layer(self.conv5_2, "conv5_3")
         self.conv5_4 = self.conv_layer(self.conv5_3, "conv5_4")
-        self.pool5 = self.max_pool(self.conv5_4, 'pool5')
+        self.pool5 = pool_func(self.conv5_4, 'pool5')
 
         self.conv1_1_G = self.get_G_matrix(self.conv1_1)
         #self.conv1_1_G = tf.matmul(self.conv1_1, tf.transpose(self.conv1_1,perm=[0,1,3,2]))
