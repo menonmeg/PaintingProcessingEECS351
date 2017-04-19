@@ -1,37 +1,39 @@
 % filename: string -- don't include iteration number or '.jpeg'
+% saveName: string
+% numImg: int
+% borderOn: bool
 % height: int
 % width: int
-% borderOn: bool
-function plotImages(filename, height, width, borderOn)
-close all
+% example: plotImages('','vgg_mean_lion',6,1, 1,1)
+function plotImages(filename, saveName, numImg, borderOn, height, width)
+%close all
 %fileFolder should be the path to the ouput image folder
 % /Users/izzysalley/tensorflow/proj351/PaintingProcessingEECS351/test_data
-fileFolder = fullfile('Users','izzysalley','tensorflow','proj351','PaintingProcessingEECS351','law_quad_layer1');
+fileFolder = fullfile('Users','izzysalley','tensorflow','proj351','ImageSave', 'vgg_mean_lion'); %'PaintingProcessingEECS351'
 
-file = [filename,'0.jpeg'];
+firstInd = '50';
+file = [filename,firstInd,'.jpeg'];
 filePath = ['/', fullfile(fileFolder, file)];
 names{1} = filePath;
 
-modSize = 10;
-for k = 1:(width*height)-1
+modSize = 100;
+for k = 1:numImg-1
   file = sprintf([filename,'%d.jpeg'], k*modSize);
   filePath = ['/', fullfile(fileFolder, file)];
   names{k+1} = filePath;
 end
 
 if borderOn
-    saveName = 'test_border';
     sepDist = 3;
-    for n = 1:height*width
+    for n = 1:numImg
         img = imread(names{n});
         imArray(:,:,:,n)= img; 
     end
     
-    img = createImMontage(imArray,width*height,1,sepDist);
+    img = createImMontage(imArray,numImg,1,sepDist);
     montage(img);
     
 else
-    saveName = 'test';
     montage(names, 'Size', [height width]);
 
 end
@@ -39,7 +41,8 @@ end
     ax = gca;
     ax.FontSize = fsize;
     %title([filename, ' Iterations'], 'FontSize',fsize);
-    xlabel(sprintf('Optimization Iterations 0 to %d', (k+1)*modSize));
+    xlabel(sprintf('Optimization Iterations 50 to %d', k*modSize));
+    %xlabel(sprintf('Optimization Iterations 50, 100, 200, 300, 400, 500'));
     print(saveName, '-dpng');
 
 end
